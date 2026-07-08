@@ -9,7 +9,7 @@ class Item extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['category_id', 'flightcase_id', 'sku', 'name', 'total_qty', 'available_qty', 'status'];
+    protected $fillable = ['category_id', 'sku', 'name', 'total_qty', 'available_qty', 'status'];
 
     protected $casts = [
         'total_qty' => 'integer',
@@ -21,10 +21,7 @@ class Item extends Model
         return $this->belongsTo(Category::class);
     }
 
-    public function flightcase()
-    {
-        return $this->belongsTo(Flightcase::class);
-    }
+
 
     public function manifestItems()
     {

@@ -19,17 +19,9 @@ class ManifestService
         $this->stockService = $stockService;
     }
 
-    /**
-     * Proses outbound manifest dengan dukungan penuh:
-     * - Item satuan (dengan qty spesifik)
-     * - Flightcase bundling (menggunakan pivot table flightcase_item untuk quantity)
-     * - Asset vs Consumable handling
-     * - Riwayat stok otomatis
-     */
     public function createOutboundManifest(array $data, $userId)
     {
         return DB::transaction(function () use ($data, $userId) {
-            // 1. Buat Header Transaksi
             $manifest = Manifest::create([
                 'manifest_number' => 'OUT-' . date('YmdHis') . '-' . rand(100, 999),
                 'event_id' => $data['event_id'],
@@ -42,7 +34,6 @@ class ManifestService
 
             $totalItemsOut = 0;
 
-            // 2A. Proses Item Satuan
             if (isset($data['items'])) {
                 foreach ($data['items'] as $itemData) {
                     $item = Item::where('id', $itemData['item_id'])->lockForUpdate()->firstOrFail();
@@ -64,7 +55,6 @@ class ManifestService
                     $item->available_qty -= $itemData['qty'];
                     $totalItemsOut += $itemData['qty'];
 
-                    // Consumable: total_qty juga berkurang (habis pakai)
                     if ($item->category && $item->category->type === 'consumable') {
                         $item->total_qty -= $itemData['qty'];
                         if ($item->total_qty < 0) $item->total_qty = 0;
@@ -90,7 +80,6 @@ class ManifestService
                 }
             }
 
-            // 2B. Proses Flightcase Bundling (menggunakan pivot table)
             if (isset($data['flightcases'])) {
                 foreach ($data['flightcases'] as $fcData) {
                     $flightcase = Flightcase::with('bundledItems')->findOrFail($fcData['flightcase_id']);
@@ -151,22 +140,13 @@ class ManifestService
         });
     }
 
-    /**
-     * Proses inbound manifest (pengembalian barang).
-     * - Validasi cegah double inbound dengan pessimistic locking
-     * - Cegah pengembalian barang consumable
-     * - Deteksi broken/lost → buat insiden
-     * - Catat riwayat stok
-     */
     public function processInboundManifest(array $data, $userId)
     {
         return DB::transaction(function () use ($data, $userId) {
-            // 1. Ambil outbound manifest dengan lock untuk cegah race condition
             $outbound = Manifest::where('id', $data['outbound_manifest_id'])
                 ->lockForUpdate()
                 ->firstOrFail();
 
-            // ===== VALIDASI: Cegah Double Inbound (dengan lock) =====
             if (in_array($outbound->status, ['completed', 'has_issue'])) {
                 throw new Exception(
                     "Manifest outbound {$outbound->manifest_number} sudah diproses inbound sebelumnya. " .
@@ -174,7 +154,6 @@ class ManifestService
                 );
             }
 
-            // 2. Buat Header Transaksi Kepulangan (Inbound)
             $inbound = Manifest::create([
                 'manifest_number' => 'INB-' . date('YmdHis') . '-' . rand(100, 999),
                 'event_id' => $outbound->event_id,
@@ -189,11 +168,9 @@ class ManifestService
             $hasIssue = false;
             $incidents = [];
 
-            // 3. Looping hasil checklist kru di lapangan
             foreach ($data['items'] as $returnedItem) {
                 $item = Item::where('id', $returnedItem['item_id'])->lockForUpdate()->firstOrFail();
 
-                // ===== VALIDASI: Cegah Inbound untuk Barang Consumable =====
                 $item->load('category');
                 if ($item->category && $item->category->type === 'consumable') {
                     throw new Exception(
@@ -201,7 +178,6 @@ class ManifestService
                     );
                 }
 
-                // Simpan ke detail Inbound Manifest
                 $manifestItem = ManifestItem::create([
                     'manifest_id' => $inbound->id,
                     'item_id' => $item->id,
@@ -211,12 +187,10 @@ class ManifestService
                     'notes' => $returnedItem['notes'] ?? null,
                 ]);
 
-                // 4. Logika Audit & Mutasi Stok
                 if ($returnedItem['condition'] === 'good') {
                     $item->available_qty += $returnedItem['qty_actual'];
                     $item->status = 'available';
 
-                    // Catat riwayat stok masuk
                     $this->stockService->recordTransaction(
                         $item,
                         $userId,

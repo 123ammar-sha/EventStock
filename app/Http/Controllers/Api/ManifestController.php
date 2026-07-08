@@ -78,7 +78,7 @@ class ManifestController extends Controller
             'items.*.item_id' => 'required|exists:items,id',
             'items.*.qty' => 'required|integer|min:1',
 
-            // Flightcases dinonaktifkan untuk rilis ini
+
         ]);
 
         try {

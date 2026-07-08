@@ -3,10 +3,8 @@
 
 use Illuminate\Support\Facades\Route;
 
-// Halaman login (tidak perlu auth)
 Route::get('/login', fn() => view('auth.login'))->name('login');
 
-// Halaman utama (auth dicek di sisi JS)
 Route::get('/', fn() => redirect()->route('dashboard'));
 Route::get('/dashboard', fn() => view('dashboard.index'))->name('dashboard');
 Route::get('/items', fn() => view('items.index'))->name('items');
@@ -20,4 +18,3 @@ Route::get('/incidents', fn() => view('incidents.index'))->name('incidents');
 Route::get('/events', fn() => view('events.index'))->name('events');
 Route::get('/flightcases', fn() => view('flightcases.index'))->name('flightcases');
 Route::get('/users', fn() => view('users.index'))->name('users');
-Route::get('/403', fn() => view('errors.403'))->name('forbidden');

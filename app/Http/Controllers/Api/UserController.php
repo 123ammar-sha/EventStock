@@ -10,18 +10,12 @@ use Illuminate\Support\Facades\Hash;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
         if (Gate::denies('manageUsers')) return response()->json(['message' => 'Unauthorized'], 403);
         return response()->json(['data' => User::all()]);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
         if (Gate::denies('manageUsers')) return response()->json(['message' => 'Hanya Super Admin yang bisa menambah kru'], 403);
@@ -43,9 +37,7 @@ class UserController extends Controller
         return response()->json(['message' => 'User berhasil dibuat', 'data' => $user], 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
+
     public function show(string $id)
     {
         if (Gate::denies('manageUsers')) return response()->json(['message' => 'Unauthorized'], 403);

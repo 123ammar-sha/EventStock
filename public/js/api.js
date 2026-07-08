@@ -36,7 +36,7 @@ async function apiRequest(method, endpoint, data = null, params = {}) {
 
     const config = {
         method: method.toUpperCase(),
-        url: url,  // ← Gunakan url, bukan API_BASE + endpoint
+        url: url, 
         headers: {
             Accept: "application/json",
             "Content-Type": "application/json",
@@ -136,8 +136,7 @@ function parseError(error) {
 
     const { status, data } = error.response;
 
-    if (status === 422) {
-        // Validasi error — ambil pesan pertama dari field manapun
+    if (status === 422) {        
         if (data.errors) {
             const firstKey = Object.keys(data.errors)[0];
             return data.errors[firstKey][0];

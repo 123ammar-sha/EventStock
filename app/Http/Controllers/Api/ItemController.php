@@ -47,7 +47,6 @@ class ItemController extends Controller
     {
         $validated = $request->validate([
             'category_id' => 'required|exists:categories,id',
-            'flightcase_id' => 'nullable|exists:flightcases,id',
             'sku' => 'required|string|unique:items,sku',
             'name' => 'required|string|max:255',
             'total_qty' => 'required|integer|min:1',
@@ -84,7 +83,6 @@ class ItemController extends Controller
 
         $validated = $request->validate([
             'category_id' => 'sometimes|exists:categories,id',
-            'flightcase_id' => 'nullable|exists:flightcases,id',
             'sku' => 'sometimes|string|unique:items,sku,' . $id,
             'name' => 'sometimes|string|max:255',
         ]);

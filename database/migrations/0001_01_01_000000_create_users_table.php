@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
-            // 🌟 Tambahkan baris ini untuk menyimpan hak akses:
             $table->enum('role', ['super_admin', 'warehouse_manager', 'field_crew'])->default('field_crew');
             $table->rememberToken();
             $table->timestamps();

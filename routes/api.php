@@ -29,7 +29,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('events', EventController::class);
     Route::apiResource('items', ItemController::class);
     Route::apiResource('categories', CategoryController::class);
-    Route::apiResource('flightcases', FlightcaseController::class);
 
     // Manifests
     Route::get('/manifests', [ManifestController::class, 'index']);
@@ -49,6 +48,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/stock/add', [StockController::class, 'addStock']);
     Route::post('/stock/adjust', [StockController::class, 'adjustStock']);
 
-    // User Management (Super Admin only via Gate Policy)
     Route::apiResource('users', UserController::class);
 });

@@ -13,13 +13,11 @@ return new class extends Migration
     {
         Schema::create('incident_logs', function (Blueprint $table) {
             $table->id();
-            // Relasi ke manifest_items agar kita tahu rusak/hilangnya di transaksi yang mana
             $table->foreignId('manifest_item_id')->constrained()->cascadeOnDelete();
 
             $table->enum('type', ['broken', 'lost']);
             $table->integer('qty_affected');
 
-            // resolved: Penanda apakah barang sudah diganti/diperbaiki (true) atau belum (false)
             $table->boolean('resolved')->default(false);
             $table->timestamps();
         });
